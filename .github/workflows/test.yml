@@ -1,0 +1,24 @@
+name: Run GCD Shell Script Tests
+
+on:
+  push:
+    paths:
+      - '**.sh'
+  pull_request:
+    paths:
+      - '**.sh'
+  workflow_dispatch:  # 手動実行も可能に
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 リポジトリをチェックアウト
+        uses: actions/checkout@v3
+
+      - name: 🛠️ スクリプトに実行権限を付与
+        run: chmod +x gcd.sh test_gcd.sh
+
+      - name: ✅ テストスクリプトを実行
+        run: ./test_gcd.sh
