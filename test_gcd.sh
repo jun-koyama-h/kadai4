@@ -1,74 +1,61 @@
 #!/bin/bash
 
-# テスト対象スクリプト
 TARGET="./gcd.sh"
-
-# 成功したテスト数をカウント
 PASS_COUNT=0
 FAIL_COUNT=0
 
-# 成功・失敗表示関数
 pass() {
   echo "✅ $1"
-  PASS_COUNT=$((PASS_COUNT+1))
+  PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 fail() {
   echo "❌ $1" >&2
-  FAIL_COUNT=$((FAIL_COUNT+1))
+  FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
-# テストケース：成功系
-output=$($TARGET 2 4)
-if [ "$output" = "2" ]; then
-  pass "2と4 → 2"
-else
-  fail "2と4 → 想定外の出力（$output）"
-fi
+run_test() {
+  description=$1
+  shift
+  expected_output=$1
+  shift
+  output=$("$@" 2>/dev/null)
 
-output=$($TARGET 15 5)
-if [ "$output" = "5" ]; then
-  pass "15と5 → 5"
-else
-  fail "15と5 → 想定外の出力（$output）"
-fi
+  if [ "$output" = "$expected_output" ]; then
+    pass "$description"
+  else
+    fail "$description: 出力 '$output'（期待値 '$expected_output'）"
+  fi
+}
 
-# テストケース：失敗系（引数不足）
-if $TARGET 3 > /dev/null 2>&1; then
-  fail "引数1個 → エラーにならない"
-else
-  pass "引数1個 → エラーを検出"
-fi
+run_error_test() {
+  description=$1
+  shift
+  "$@" > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    pass "$description"
+  else
+    fail "$description: エラーを検出できませんでした"
+  fi
+}
 
-# テストケース：文字列
-if $TARGET a b > /dev/null 2>&1; then
-  fail "文字列 → エラーにならない"
-else
-  pass "文字列 → エラーを検出"
-fi
+# 正常系
+run_test "2と4 → 2を返す" 2 $TARGET 2 4
+run_test "36と60 → 12を返す" 12 $TARGET 36 60
+run_test "1と1 → 1を返す" 1 $TARGET 1 1
 
-# テストケース：負の数
-if $TARGET -2 4 > /dev/null 2>&1; then
-  fail "負の数 → エラーにならない"
-else
-  pass "負の数 → エラーを検出"
-fi
+# 異常系
+run_error_test "引数が1個 → エラー" $TARGET 5
+run_error_test "引数が3個 → エラー" $TARGET 1 2 3
+run_error_test "負の数 → エラー" $TARGET -3 9
+run_error_test "0を含む → エラー" $TARGET 0 10
+run_error_test "小数 → エラー" $TARGET 3.5 7
+run_error_test "文字列 → エラー" $TARGET abc 5
+run_error_test "極端に大きい数 → 正常終了（想定）" $TARGET 9999999967 3
 
-# テストケース：0の入力
-if $TARGET 0 5 > /dev/null 2>&1; then
-  fail "0を含む → エラーにならない"
-else
-  pass "0を含む → エラーを検出"
-fi
-
-# 結果まとめ
-echo ""
+# 結果
+echo
 echo "✅ 成功: $PASS_COUNT"
 echo "❌ 失敗: $FAIL_COUNT"
 
-# 終了コード
-if [ "$FAIL_COUNT" -eq 0 ]; then
-  exit 0
-else
-  exit 1
-fi
+exit $FAIL_COUNT
