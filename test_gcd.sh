@@ -51,7 +51,7 @@ run_error_test "負の数 → エラー" $TARGET -3 9
 run_error_test "0を含む → エラー" $TARGET 0 10
 run_error_test "小数 → エラー" $TARGET 3.5 7
 run_error_test "文字列 → エラー" $TARGET abc 5
-run_error_test "極端に大きい数 → 正常終了（想定）" $TARGET 9999999967 3
+run_error_test "極端に大きい数 → エラーを検出する" $TARGET 999999999999999999999 3
 
 # 結果
 echo

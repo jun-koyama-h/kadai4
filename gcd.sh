@@ -19,8 +19,8 @@ for arg in "$1" "$2"; do
     error_exit "自然数（1以上の整数）を指定してください。入力値: $arg"
   fi
 
-  # MAX_INT を超えるかチェック
-  if [ "$arg" -gt "$MAX_INT" ] 2>/dev/null; then
+  # bc を使った安全な比較
+  if ! echo "$arg <= $MAX_INT" | bc | grep -q 1; then
     error_exit "数値が大きすぎます（最大: $MAX_INT）。入力値: $arg"
   fi
 done
